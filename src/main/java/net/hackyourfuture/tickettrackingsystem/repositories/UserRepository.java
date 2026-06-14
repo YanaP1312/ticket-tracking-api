@@ -1,6 +1,5 @@
 package net.hackyourfuture.tickettrackingsystem.repositories;
 
-import net.hackyourfuture.tickettrackingsystem.dto.request.users.PatchUserRequest;
 import net.hackyourfuture.tickettrackingsystem.dto.request.users.PostUserRequest;
 import net.hackyourfuture.tickettrackingsystem.dto.response.users.GetUserResponse;
 import net.hackyourfuture.tickettrackingsystem.dto.response.users.PatchUserResponse;
