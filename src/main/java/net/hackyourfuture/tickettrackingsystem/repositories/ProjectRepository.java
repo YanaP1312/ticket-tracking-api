@@ -116,11 +116,4 @@ public class ProjectRepository {
 
         jdbcTemplate.update(sql, projectId);
     }
-
-    public boolean projectExists(int projectId){
-        String sql = "SELECT COUNT(*) FROM projects WHERE project_id = ?";
-        Integer count = jdbcTemplate.queryForObject(sql, Integer.class, projectId);
-        return count != null && count > 0;
-    }
-
 }
