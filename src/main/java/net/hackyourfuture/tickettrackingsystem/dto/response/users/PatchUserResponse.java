@@ -1,4 +1,12 @@
 package net.hackyourfuture.tickettrackingsystem.dto.response.users;
 
-public record PatchUserResponse(int userId, String userName, String userEmail) {
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+public record PatchUserResponse(
+        @JsonProperty("user_id")
+        int userId,
+        @JsonProperty("user_name")
+        String userName,
+        @JsonProperty("user_email")
+        String userEmail) {
 }
