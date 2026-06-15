@@ -12,13 +12,13 @@ import java.util.Optional;
 
 @Repository
 public class UserRepository {
-    private JdbcTemplate jdbcTemplate;
+    private final JdbcTemplate jdbcTemplate;
 
     public UserRepository(JdbcTemplate jdbcTemplate){
         this.jdbcTemplate = jdbcTemplate;
     }
 
-    public List<GetUserResponse> fetchAllUsers(){
+    public List<GetUserResponse> getAllUsers(){
         String sql = """
                 SELECT user_id, user_name, user_email
                 FROM users
@@ -31,7 +31,7 @@ public class UserRepository {
                 ));
     }
 
-    public Optional<GetUserResponse> fetchUserById(int userId){
+    public Optional<GetUserResponse> getUserById(int userId){
         String sql = """
                 SELECT user_id, user_name, user_email
                 FROM users

@@ -23,11 +23,11 @@ public class UserService {
     }
 
     public List<GetUserResponse> getAllUsers(){
-        return repository.fetchAllUsers();
+        return repository.getAllUsers();
     }
 
     public GetUserResponse getUserById(int userId){
-        return repository.fetchUserById(userId).orElseThrow(() ->  new NotFoundException("User with id " + userId + " is not found."));
+        return repository.getUserById(userId).orElseThrow(() ->  new NotFoundException("User with id " + userId + " is not found."));
     }
 
     public PostUserResponse createUser(PostUserRequest requestBody){
@@ -35,7 +35,7 @@ public class UserService {
     }
 
     public PatchUserResponse updateUser(int userId, PatchUserRequest requestBody){
-        GetUserResponse existing = repository.fetchUserById(userId)
+        GetUserResponse existing = repository.getUserById(userId)
                 .orElseThrow(() -> new NotFoundException("User with id " + userId + " is not found."));
 
         if((requestBody.userName() == null || requestBody.userName().isBlank()) &&
@@ -50,7 +50,7 @@ public class UserService {
     }
 
     public DeleteUserResponse removeUser(int userId){
-        repository.fetchUserById(userId)
+        repository.getUserById(userId)
                 .orElseThrow(() -> new NotFoundException("User with id " + userId + " is not found."));
 
         repository.removeUser(userId);

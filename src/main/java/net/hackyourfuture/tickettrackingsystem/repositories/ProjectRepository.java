@@ -11,7 +11,7 @@ import java.util.Optional;
 
 @Repository
 public class ProjectRepository {
-    private JdbcTemplate jdbcTemplate;
+    private final JdbcTemplate jdbcTemplate;
 
     public ProjectRepository(JdbcTemplate jdbcTemplate){
         this.jdbcTemplate = jdbcTemplate;
