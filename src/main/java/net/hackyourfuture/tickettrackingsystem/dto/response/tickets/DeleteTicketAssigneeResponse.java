@@ -7,5 +7,4 @@ public record DeleteTicketAssigneeResponse (
         int ticketId,
         GetTicketAssigneesInfoResponse assignees,
         String warning
-){
-}
+){}

@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Getter
 @Setter
@@ -18,4 +19,5 @@ public class Ticket {
     private String ticketStatus;
     private LocalDateTime ticketCreatedAt;
     private LocalDateTime ticketUpdatedAt;
+    private List<Assignee> assignees;
 }
