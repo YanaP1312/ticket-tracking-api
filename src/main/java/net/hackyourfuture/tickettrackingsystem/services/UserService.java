@@ -23,11 +23,11 @@ public class UserService {
     }
 
     public List<GetUserResponse> getAllUsers(){
-        return repository.fetchAllUsers();
+        return repository.getAllUsers();
     }
 
     public GetUserResponse getUserById(int userId){
-        return repository.fetchUserById(userId).orElseThrow(() ->  new NotFoundException("User with id " + userId + " is not found."));
+        return repository.getUserById(userId).orElseThrow(() ->  new NotFoundException("User with id " + userId + " is not found."));
     }
 
     public PostUserResponse createUser(PostUserRequest requestBody){

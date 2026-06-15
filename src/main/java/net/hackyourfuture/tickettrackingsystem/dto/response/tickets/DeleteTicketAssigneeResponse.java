@@ -2,9 +2,11 @@ package net.hackyourfuture.tickettrackingsystem.dto.response.tickets;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.util.List;
+
 public record DeleteTicketAssigneeResponse (
         @JsonProperty("ticket_id")
         int ticketId,
-        GetTicketAssigneesInfoResponse assignees,
+        List<GetTicketAssigneesInfoResponse> assignees,
         String warning
 ){}

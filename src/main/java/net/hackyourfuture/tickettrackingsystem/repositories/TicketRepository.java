@@ -19,8 +19,8 @@ public class TicketRepository {
         this.jdbcTemplate = jdbcTemplate;
     }
 
-    public List<Ticket> getAllTickets(){
-        String sql = """
+    public List<Ticket> getAllTickets(String text, String status){
+        StringBuilder sql = new StringBuilder("""
                 SELECT t.ticket_id,
                 t.ticket_title,
                 t.ticket_description,
@@ -33,12 +33,27 @@ public class TicketRepository {
                 FROM tickets t
                 LEFT JOIN tickets_users tu ON t.ticket_id = tu.ticket_id
                 LEFT JOIN users u ON tu.user_id = u.user_id
-                ORDER BY t.ticket_id
-                """;
+                WHERE 1=1
+                """);
+
+        List<Object> params = new ArrayList<>();
+
+        if(text != null && !text.isBlank()){
+            sql.append(" AND (t.ticket_title ILIKE ? OR t.ticket_description ILIKE ?)");
+            params.add("%" + text + "%");
+            params.add("%" + text + "%");
+        }
+
+        if(status !=null){
+            sql.append(" AND t.ticket_status = ?");
+            params.add(status);
+        }
+
+        sql.append(" ORDER BY t.ticket_id");
 
         Map<Integer, Ticket> ticketMap = new LinkedHashMap<>();
 
-        jdbcTemplate.query(sql, rs -> {
+        jdbcTemplate.query(sql.toString(), rs -> {
             int id = rs.getInt("ticket_id");
 
             if (!ticketMap.containsKey(id)) {
@@ -62,7 +77,7 @@ public class TicketRepository {
                         )
                 );
             }
-        });
+        }, params.toArray());
         return new ArrayList<>(ticketMap.values());
     }
 
@@ -169,12 +184,12 @@ public class TicketRepository {
                 ticketId
         );
 
-        ticket.setAssignees(getAssigneesByTickedId(ticketId));
+        ticket.setAssignees(getAssigneesByTicketId(ticketId));
         return ticket;
 
     }
 
-    public List<Assignee> getAssigneesByTickedId(int ticketId){
+    public List<Assignee> getAssigneesByTicketId(int ticketId){
         String sql = """
                 SELECT u.user_id, u.user_name
                 FROM tickets_users tu
@@ -197,7 +212,7 @@ public class TicketRepository {
 
         jdbcTemplate.update(sql, ticketId, userId);
 
-        return getAssigneesByTickedId(ticketId);
+        return getAssigneesByTicketId(ticketId);
     }
 
     public List<Assignee> deleteAssigneeFromTicket(int ticketId, int userId){
@@ -208,6 +223,15 @@ public class TicketRepository {
 
         jdbcTemplate.update(sql, ticketId, userId);
 
-        return getAssigneesByTickedId(ticketId);
+        return getAssigneesByTicketId(ticketId);
+    }
+
+    public boolean isUserAssigned(int ticketId, int userId) {
+        String sql = """
+            SELECT COUNT(*) FROM tickets_users
+            WHERE ticket_id = ? AND user_id = ?
+            """;
+        Integer count = jdbcTemplate.queryForObject(sql, Integer.class, ticketId, userId);
+        return count != null && count > 0;
     }
 }

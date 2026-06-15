@@ -20,5 +20,6 @@ public record PatchTicketResponse (
         LocalDateTime ticketCreatedAt,
         @JsonProperty("ticket_updated_at")
         LocalDateTime ticketUpdatedAt,
-        List<GetTicketAssigneesInfoResponse> assignees
+        List<GetTicketAssigneesInfoResponse> assignees,
+        String warning
 ) {}
