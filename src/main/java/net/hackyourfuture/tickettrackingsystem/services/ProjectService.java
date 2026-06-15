@@ -16,7 +16,7 @@ import java.util.List;
 @Service
 public class ProjectService {
 
-    private ProjectRepository repository;
+    private final ProjectRepository repository;
 
     public ProjectService(ProjectRepository repository){
         this.repository = repository;

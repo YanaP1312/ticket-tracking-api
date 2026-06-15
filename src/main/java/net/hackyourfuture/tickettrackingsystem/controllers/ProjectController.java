@@ -17,7 +17,7 @@ import java.util.List;
 @RequestMapping("/projects")
 public class ProjectController {
 
-    private ProjectService service;
+    private final ProjectService service;
 
     public ProjectController(ProjectService service){
         this.service = service;

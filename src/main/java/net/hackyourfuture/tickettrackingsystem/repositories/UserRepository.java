@@ -12,7 +12,7 @@ import java.util.Optional;
 
 @Repository
 public class UserRepository {
-    private JdbcTemplate jdbcTemplate;
+    private final JdbcTemplate jdbcTemplate;
 
     public UserRepository(JdbcTemplate jdbcTemplate){
         this.jdbcTemplate = jdbcTemplate;

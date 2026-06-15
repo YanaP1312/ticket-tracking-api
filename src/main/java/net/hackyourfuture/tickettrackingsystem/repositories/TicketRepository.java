@@ -13,7 +13,7 @@ import java.util.*;
 @Repository
 public class TicketRepository {
 
-    private JdbcTemplate jdbcTemplate;
+    private final JdbcTemplate jdbcTemplate;
 
     public TicketRepository(JdbcTemplate jdbcTemplate){
         this.jdbcTemplate = jdbcTemplate;

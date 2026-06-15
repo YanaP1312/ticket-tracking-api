@@ -21,9 +21,9 @@ import java.util.List;
 @Service
 public class TicketService {
 
-    private TicketRepository repository;
-    private ProjectRepository projectRepository;
-    private UserRepository userRepository;
+    private final  TicketRepository repository;
+    private final  ProjectRepository projectRepository;
+    private final UserRepository userRepository;
 
     public TicketService(TicketRepository repository, ProjectRepository projectRepository, UserRepository userRepository){
         this.repository = repository;
