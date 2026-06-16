@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class TicketTrackingDbConnectionCheck {
 
-    private JdbcTemplate jdbcTemplate ;
+    private final JdbcTemplate jdbcTemplate ;
 
     public TicketTrackingDbConnectionCheck(JdbcTemplate jdbcTemplate){
         this.jdbcTemplate = jdbcTemplate;
@@ -19,5 +19,4 @@ public class TicketTrackingDbConnectionCheck {
         String result = this.jdbcTemplate.queryForObject("SELECT 'connected'", String.class);
         System.out.println("Database status: " + result);
     }
-
 }
