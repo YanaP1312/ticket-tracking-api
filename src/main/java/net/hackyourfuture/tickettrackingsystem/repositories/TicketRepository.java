@@ -29,7 +29,8 @@ public class TicketRepository {
                 t.ticket_created_at,
                 t.ticket_updated_at,
                 u.user_id,
-                u.user_name
+                u.user_name,
+                u.user_email
                 FROM tickets t
                 LEFT JOIN tickets_users tu ON t.ticket_id = tu.ticket_id
                 LEFT JOIN users u ON tu.user_id = u.user_id
@@ -73,7 +74,8 @@ public class TicketRepository {
                 ticketMap.get(id).getAssignees().add(
                         new Assignee(
                                 rs.getInt("user_id"),
-                                rs.getString("user_name")
+                                rs.getString("user_name"),
+                                rs.getString("user_email")
                         )
                 );
             }
@@ -91,7 +93,8 @@ public class TicketRepository {
                 t.ticket_created_at,
                 t.ticket_updated_at,
                 u.user_id,
-                u.user_name
+                u.user_name,
+                u.user_email
                 FROM tickets t
                 LEFT JOIN tickets_users tu ON t.ticket_id = tu.ticket_id
                 LEFT JOIN users u ON tu.user_id = u.user_id
@@ -118,8 +121,8 @@ public class TicketRepository {
                 result[0].getAssignees().add(
                         new Assignee(
                                 rs.getInt("user_id"),
-                                rs.getString("user_name")
-
+                                rs.getString("user_name"),
+                                rs.getString("user_email")
                         )
                 );
             }
@@ -191,7 +194,7 @@ public class TicketRepository {
 
     public List<Assignee> getAssigneesByTicketId(int ticketId){
         String sql = """
-                SELECT u.user_id, u.user_name
+                SELECT u.user_id, u.user_name, u.user_email
                 FROM tickets_users tu
                 JOIN users u ON tu.user_id = u.user_id
                 WHERE tu.ticket_id = ?
@@ -200,7 +203,8 @@ public class TicketRepository {
         return jdbcTemplate.query(sql,
                 (rs, rowNum) -> new Assignee(
                         rs.getInt("user_id"),
-                        rs.getString("user_name")
+                        rs.getString("user_name"),
+                        rs.getString("user_email")
                 ), ticketId);
     }
 
