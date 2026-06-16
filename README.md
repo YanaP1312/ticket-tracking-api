@@ -49,10 +49,10 @@ docker run --name ticket-tracking-db \
 
 3. Set the following environment variables:
 
-DB_URL=jdbc:postgresql://localhost:5432/ticket_tracking
-DB_USERNAME=your_username
-DB_PASSWORD=your_password
-RESEND_API_KEY=your_resend_api_key
+- DB_URL=jdbc:postgresql://localhost:5432/ticket_tracking
+- DB_USERNAME=your_username
+- DB_PASSWORD=your_password
+- RESEND_API_KEY=your_resend_api_key
 
 4. Run the SQL setup script to create the tables:
 
