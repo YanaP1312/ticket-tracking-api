@@ -12,7 +12,7 @@ public class ResendService {
 
     private final Resend resend;
 
-    @Value("${resend.form}")
+    @Value("${resend.from}")
     private String from;
 
     public ResendService(Resend resend){

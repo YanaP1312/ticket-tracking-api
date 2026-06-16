@@ -7,8 +7,5 @@ public record GetTicketAssigneesInfoResponse(
         int userId,
 
         @JsonProperty("user_name")
-        String userName,
-
-        @JsonProperty("user_email")
-        String userEmail
+        String userName
 ){}
