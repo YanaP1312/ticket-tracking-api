@@ -35,20 +35,23 @@ public class UserService {
     }
 
     public PatchUserResponse updateUser(int userId, PatchUserRequest requestBody){
-        repository.getUserById(userId)
-                .orElseThrow(() -> new NotFoundException("User with id " + userId + " is not found."));
+        getUserById(userId);
 
-        if((requestBody.userName() == null || requestBody.userName().isBlank()) &&
-                (requestBody.userEmail() == null || requestBody.userEmail().isBlank())){
+        boolean nameBlank = requestBody.userName() == null || requestBody.userName().isBlank();
+        boolean emailBlank = requestBody.userEmail() == null || requestBody.userEmail().isBlank();
+
+        if(nameBlank && emailBlank){
             throw new BadRequestException("At least one field must be provided.");
         }
 
-        return repository.updateUser(requestBody.userName(), requestBody.userEmail(), userId);
+        String safeName = nameBlank ? null : requestBody.userName();
+        String safeEmail = emailBlank ? null : requestBody.userEmail();
+
+        return repository.updateUser(safeName, safeEmail, userId);
     }
 
     public DeleteUserResponse removeUser(int userId){
-        repository.getUserById(userId)
-                .orElseThrow(() -> new NotFoundException("User with id " + userId + " is not found."));
+        getUserById(userId);
 
         repository.removeUser(userId);
 
