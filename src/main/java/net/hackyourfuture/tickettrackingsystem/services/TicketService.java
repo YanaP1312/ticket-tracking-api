@@ -77,8 +77,12 @@ public class TicketService {
     public PatchTicketResponse updateTicket(int ticketId, PatchTicketRequest requestBody){
         getTicketById(ticketId);
 
-        if (requestBody.ticketTitle() == null && requestBody.ticketDescription() == null
-                && requestBody.projectId() == null && requestBody.ticketStatus() == null) {
+        boolean titleBlank = requestBody.ticketTitle() == null || requestBody.ticketTitle().isBlank();
+        boolean descriptionBlank = requestBody.ticketDescription() == null || requestBody.ticketDescription().isBlank();
+        boolean projectIdBlank = requestBody.projectId() == null;
+        boolean statusBlank = requestBody.ticketStatus() == null || requestBody.ticketStatus().isBlank();
+
+        if (titleBlank && descriptionBlank && projectIdBlank && statusBlank) {
             throw new BadRequestException("At least one field must be provided");
         }
 
@@ -86,7 +90,14 @@ public class TicketService {
             projectService.getProjectById(requestBody.projectId());
         }
 
-        Ticket ticket = repository.updateTicket(ticketId, requestBody);
+        PatchTicketRequest safeRequestBody = new PatchTicketRequest(
+                titleBlank ? null : requestBody.ticketTitle(),
+                requestBody.ticketDescription(),
+                requestBody.projectId(),
+                requestBody.ticketStatus()
+        );
+
+        Ticket ticket = repository.updateTicket(ticketId, safeRequestBody);
 
         String warning = sendEmail(ticket.getAssignees(), ticket)
                 ? null
