@@ -10,9 +10,7 @@ import net.hackyourfuture.tickettrackingsystem.exceptions.NotFoundException;
 import net.hackyourfuture.tickettrackingsystem.models.Assignee;
 import net.hackyourfuture.tickettrackingsystem.models.Ticket;
 import net.hackyourfuture.tickettrackingsystem.models.enums.TicketStatus;
-import net.hackyourfuture.tickettrackingsystem.repositories.ProjectRepository;
 import net.hackyourfuture.tickettrackingsystem.repositories.TicketRepository;
-import net.hackyourfuture.tickettrackingsystem.repositories.UserRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -22,14 +20,14 @@ import java.util.List;
 public class TicketService {
 
     private final  TicketRepository repository;
-    private final  ProjectRepository projectRepository;
-    private final UserRepository userRepository;
+    private final  ProjectService projectService;
+    private final UserService userService;
     private final ResendService resendService;
 
-    public TicketService(TicketRepository repository, ProjectRepository projectRepository, UserRepository userRepository, ResendService resentService){
+    public TicketService(TicketRepository repository, ProjectService projectService, UserService userService, ResendService resentService){
         this.repository = repository;
-        this.projectRepository = projectRepository;
-        this.userRepository = userRepository;
+        this.projectService = projectService;
+        this.userService = userService;
         this.resendService = resentService;
     }
 
@@ -60,10 +58,7 @@ public class TicketService {
     }
 
     public PostTicketResponse createTicket(PostTicketRequest requestBody){
-        projectRepository.getProjectById(requestBody.projectId())
-                .orElseThrow(() -> new NotFoundException(
-                        "Project with id " + requestBody.projectId() + " doesn't exist"
-                ));
+        projectService.getProjectById(requestBody.projectId());
 
         Ticket ticket = repository.createTicket(requestBody);
 
@@ -80,8 +75,7 @@ public class TicketService {
     }
 
     public PatchTicketResponse updateTicket(int ticketId, PatchTicketRequest requestBody){
-        repository.getTicketById(ticketId)
-                .orElseThrow(() -> new NotFoundException("Ticket with id " + ticketId + " doesn't exist"));
+        getTicketById(ticketId);
 
         if (requestBody.ticketTitle() == null && requestBody.ticketDescription() == null
                 && requestBody.projectId() == null && requestBody.ticketStatus() == null) {
@@ -89,10 +83,7 @@ public class TicketService {
         }
 
         if (requestBody.projectId() != null) {
-            projectRepository.getProjectById(requestBody.projectId())
-                    .orElseThrow(() -> new NotFoundException(
-                            "Project with id " + requestBody.projectId() + " doesn't exist"
-                    ));
+            projectService.getProjectById(requestBody.projectId());
         }
 
         Ticket ticket = repository.updateTicket(ticketId, requestBody);
@@ -115,11 +106,9 @@ public class TicketService {
     }
 
     public PostTicketAssigneeResponse addAssigneeToTicket(int ticketId, PostTicketAssigneeRequest requestBody){
-        repository.getTicketById(ticketId)
-                .orElseThrow(() -> new NotFoundException("Ticket with id " + ticketId + " doesn't exist"));
+        getTicketById(ticketId);
 
-        userRepository.getUserById(requestBody.userId())
-                .orElseThrow(() -> new NotFoundException("User with id " + requestBody.userId() + " doesn't exist"));
+        userService.getUserById(requestBody.userId());
 
         if (repository.isUserAssigned(ticketId, requestBody.userId())) {
             throw new ConflictException("User with id " + requestBody.userId() + " is already assigned to this ticket");
@@ -137,13 +126,9 @@ public class TicketService {
     }
 
     public DeleteTicketAssigneeResponse removeAssigneeFromTicket(int ticketId, int userId){
-        repository.getTicketById(ticketId)
-                .orElseThrow(() -> new NotFoundException("Ticket with id " + ticketId + " doesn't exist"));
+        getTicketById(ticketId);
 
-
-        userRepository.getUserById(userId)
-                .orElseThrow(() -> new NotFoundException("User with id " + userId + " doesn't exist"));
-
+        userService.getUserById(userId);
 
         if (!repository.isUserAssigned(ticketId, userId)) {
             throw new NotFoundException("User is not assigned to this ticket");
