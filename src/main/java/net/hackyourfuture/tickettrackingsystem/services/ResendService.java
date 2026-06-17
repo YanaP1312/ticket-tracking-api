@@ -19,7 +19,7 @@ public class ResendService {
         this.resend = resend;
     }
 
-    public String sendTicketUpdateNotification(
+    public boolean sendTicketUpdatedNotification(
             int ticketId,
             String ticketTitle,
             String ticketStatus,
@@ -27,7 +27,7 @@ public class ResendService {
             List<String> assigneeNames
     ){
         if(assigneeEmails.isEmpty()){
-            return null;
+            return true;
         }
 
         try{
@@ -41,18 +41,30 @@ public class ResendService {
                     .build();
 
             resend.emails().send(params);
-            return null;
+            return true;
         } catch (Exception e){
-            return "warning";
+            return false;
         }
     }
 
     private String buildEmailHtml(int ticketId, String ticketTitle, String ticketStatus, List<String> assigneeNames){
+        String badgeColor = switch (ticketStatus) {
+            case "open" -> "background: #e6f1fb; color: #0c447c;";
+            case "in progress" -> "background: #faeeda; color: #633806;";
+            case "closed" -> "background: #eaf3de; color: #27500a;";
+            default -> "background: #f1efe8; color: #444441;";
+        };
+
         return """
-                <p>Ticket #%d updated:</p>
-                <p>Title: "%s"</p>
-                <p>Status: "%s"</p>
-                <p>Current assignees: %s</p>
-                """.formatted(ticketId, ticketTitle, ticketStatus, String.join(", ", assigneeNames));
+            <div style="font-family: Arial, sans-serif; max-width: 480px; margin: 0 auto; padding: 24px; border: 1px solid #e0e0e0; border-radius: 8px;">
+                <h2 style="color: #2c3e50; margin-top: 0; font-size: 20px;">Ticket #%d updated</h2>
+                <p style="margin: 12px 0; font-size: 15px;"><span style="color: #888;">Title:</span> <strong>%s</strong></p>
+                <p style="margin: 12px 0; font-size: 15px;">
+                    <span style="color: #888;">Status:</span>
+                    <span style="%s padding: 4px 10px; border-radius: 12px; font-size: 13px;">%s</span>
+                </p>
+                <p style="margin: 12px 0; font-size: 15px;"><span style="color: #888;">Current assignees:</span> <strong>%s</strong></p>
+            </div>
+            """.formatted(ticketId, ticketTitle, badgeColor, ticketStatus, String.join(", ", assigneeNames));
     }
 }

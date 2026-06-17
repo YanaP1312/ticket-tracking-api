@@ -10,9 +10,7 @@ import net.hackyourfuture.tickettrackingsystem.exceptions.NotFoundException;
 import net.hackyourfuture.tickettrackingsystem.models.Assignee;
 import net.hackyourfuture.tickettrackingsystem.models.Ticket;
 import net.hackyourfuture.tickettrackingsystem.models.enums.TicketStatus;
-import net.hackyourfuture.tickettrackingsystem.repositories.ProjectRepository;
 import net.hackyourfuture.tickettrackingsystem.repositories.TicketRepository;
-import net.hackyourfuture.tickettrackingsystem.repositories.UserRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -22,14 +20,14 @@ import java.util.List;
 public class TicketService {
 
     private final  TicketRepository repository;
-    private final  ProjectRepository projectRepository;
-    private final UserRepository userRepository;
+    private final  ProjectService projectService;
+    private final UserService userService;
     private final ResendService resendService;
 
-    public TicketService(TicketRepository repository, ProjectRepository projectRepository, UserRepository userRepository, ResendService resentService){
+    public TicketService(TicketRepository repository, ProjectService projectService, UserService userService, ResendService resentService){
         this.repository = repository;
-        this.projectRepository = projectRepository;
-        this.userRepository = userRepository;
+        this.projectService = projectService;
+        this.userService = userService;
         this.resendService = resentService;
     }
 
@@ -60,10 +58,7 @@ public class TicketService {
     }
 
     public PostTicketResponse createTicket(PostTicketRequest requestBody){
-        projectRepository.getProjectById(requestBody.projectId())
-                .orElseThrow(() -> new NotFoundException(
-                        "Project with id " + requestBody.projectId() + " doesn't exist"
-                ));
+        projectService.getProjectById(requestBody.projectId());
 
         Ticket ticket = repository.createTicket(requestBody);
 
@@ -80,25 +75,33 @@ public class TicketService {
     }
 
     public PatchTicketResponse updateTicket(int ticketId, PatchTicketRequest requestBody){
-        repository.getTicketById(ticketId)
-                .orElseThrow(() -> new NotFoundException("Ticket with id " + ticketId + " doesn't exist"));
+        getTicketById(ticketId);
 
-        if (requestBody.ticketTitle() == null && requestBody.ticketDescription() == null
-                && requestBody.projectId() == null && requestBody.ticketStatus() == null) {
+        boolean titleBlank = requestBody.ticketTitle() == null || requestBody.ticketTitle().isBlank();
+        boolean descriptionBlank = requestBody.ticketDescription() == null || requestBody.ticketDescription().isBlank();
+        boolean projectIdBlank = requestBody.projectId() == null;
+        boolean statusBlank = requestBody.ticketStatus() == null || requestBody.ticketStatus().isBlank();
+
+        if (titleBlank && descriptionBlank && projectIdBlank && statusBlank) {
             throw new BadRequestException("At least one field must be provided");
         }
 
         if (requestBody.projectId() != null) {
-            projectRepository.getProjectById(requestBody.projectId())
-                    .orElseThrow(() -> new NotFoundException(
-                            "Project with id " + requestBody.projectId() + " doesn't exist"
-                    ));
+            projectService.getProjectById(requestBody.projectId());
         }
 
-        Ticket ticket = repository.updateTicket(ticketId, requestBody);
+        PatchTicketRequest safeRequestBody = new PatchTicketRequest(
+                titleBlank ? null : requestBody.ticketTitle(),
+                requestBody.ticketDescription(),
+                requestBody.projectId(),
+                requestBody.ticketStatus()
+        );
 
-        String warning = sendEmailOrGetWarning(ticket.getAssignees(), ticket,
-                "Ticket updated successfully, but email notification could not be sent.");
+        Ticket ticket = repository.updateTicket(ticketId, safeRequestBody);
+
+        String warning = sendEmail(ticket.getAssignees(), ticket)
+                ? null
+                : "Ticket updated successfully, but email notification could not be sent.";
 
         return new PatchTicketResponse(
                 ticket.getTicketId(),
@@ -114,11 +117,9 @@ public class TicketService {
     }
 
     public PostTicketAssigneeResponse addAssigneeToTicket(int ticketId, PostTicketAssigneeRequest requestBody){
-        repository.getTicketById(ticketId)
-                .orElseThrow(() -> new NotFoundException("Ticket with id " + ticketId + " doesn't exist"));
+        getTicketById(ticketId);
 
-        userRepository.getUserById(requestBody.userId())
-                .orElseThrow(() -> new NotFoundException("User with id " + requestBody.userId() + " doesn't exist"));
+        userService.getUserById(requestBody.userId());
 
         if (repository.isUserAssigned(ticketId, requestBody.userId())) {
             throw new ConflictException("User with id " + requestBody.userId() + " is already assigned to this ticket");
@@ -128,20 +129,17 @@ public class TicketService {
 
         Ticket ticket = repository.getTicketById(ticketId).orElseThrow();
 
-        String warning = sendEmailOrGetWarning(assignees, ticket,
-                "Assignee added successfully, but email notification could not be sent.");
+        String warning = sendEmail(assignees, ticket)
+                ? null
+                : "Assignee added successfully, but email notification could not be sent.";
 
         return new PostTicketAssigneeResponse(ticketId, toAssigneeDtos(assignees), warning);
     }
 
     public DeleteTicketAssigneeResponse removeAssigneeFromTicket(int ticketId, int userId){
-        repository.getTicketById(ticketId)
-                .orElseThrow(() -> new NotFoundException("Ticket with id " + ticketId + " doesn't exist"));
+        getTicketById(ticketId);
 
-
-        userRepository.getUserById(userId)
-                .orElseThrow(() -> new NotFoundException("User with id " + userId + " doesn't exist"));
-
+        userService.getUserById(userId);
 
         if (!repository.isUserAssigned(ticketId, userId)) {
             throw new NotFoundException("User is not assigned to this ticket");
@@ -151,8 +149,9 @@ public class TicketService {
 
         Ticket ticket = repository.getTicketById(ticketId).orElseThrow();
 
-        String warning = sendEmailOrGetWarning(assignees, ticket,
-                "Assignee removed successfully, but email notification could not be sent.");
+        String warning = sendEmail(assignees, ticket)
+                ? null
+                : "Assignee removed successfully, but email notification could not be sent.";
 
         return new DeleteTicketAssigneeResponse(ticketId, toAssigneeDtos(assignees), warning);
 
@@ -178,18 +177,16 @@ public class TicketService {
             .toList();
     }
 
-    private String sendEmailOrGetWarning(List<Assignee> assignees, Ticket ticket, String warningText){
+    private boolean sendEmail(List<Assignee> assignees, Ticket ticket) {
         List<String> emails = assignees.stream().map(Assignee::getUserEmail).toList();
         List<String> names = assignees.stream().map(Assignee::getUserName).toList();
 
-        String result = resendService.sendTicketUpdateNotification(
+        return resendService.sendTicketUpdatedNotification(
                 ticket.getTicketId(),
                 ticket.getTicketTitle(),
                 ticket.getTicketStatus(),
                 emails,
                 names
         );
-
-        return result != null ? warningText : null;
     }
 }

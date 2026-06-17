@@ -6,9 +6,7 @@ import net.hackyourfuture.tickettrackingsystem.dto.response.users.GetUserRespons
 import net.hackyourfuture.tickettrackingsystem.exceptions.ConflictException;
 import net.hackyourfuture.tickettrackingsystem.exceptions.NotFoundException;
 import net.hackyourfuture.tickettrackingsystem.models.Ticket;
-import net.hackyourfuture.tickettrackingsystem.repositories.ProjectRepository;
 import net.hackyourfuture.tickettrackingsystem.repositories.TicketRepository;
-import net.hackyourfuture.tickettrackingsystem.repositories.UserRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -29,9 +27,9 @@ class TicketServiceTest {
     @Mock
     private TicketRepository ticketRepository;
     @Mock
-    private ProjectRepository projectRepository;
+    private ProjectService projectService;
     @Mock
-    private UserRepository userRepository;
+    private UserService userService;
 
 
     @Test
@@ -54,8 +52,8 @@ class TicketServiceTest {
                 "open"
         );
 
-        when(projectRepository.getProjectById(999))
-                .thenReturn(Optional.empty());
+        when(projectService.getProjectById(999))
+                .thenThrow(new NotFoundException("Project with id 999 not found"));
         // Act & Assert
         assertThrows(NotFoundException.class,
                 () -> service.createTicket(request));
@@ -71,8 +69,8 @@ class TicketServiceTest {
 
         when(ticketRepository.getTicketById(1))
                 .thenReturn(Optional.of(ticket));
-        when(userRepository.getUserById(2))
-                .thenReturn(Optional.of(new GetUserResponse(2, "name", "email")));
+        when(userService.getUserById(2))
+                .thenReturn(new GetUserResponse(2, "name", "email"));
         when(ticketRepository.isUserAssigned(1, 2))
                 .thenReturn(true);
         // Act & Assert

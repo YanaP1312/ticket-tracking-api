@@ -36,8 +36,7 @@ public class ProjectService {
     }
 
     public PatchProjectResponse updateProject(int projectId, PatchProjectRequest requestBody){
-        GetProjectResponse existing = repository.getProjectById(projectId)
-                .orElseThrow(() -> new NotFoundException("Project with id " + projectId + " not found"));
+        getProjectById(projectId);
 
         if(requestBody.projectName() == null || requestBody.projectName().isBlank()){
             throw new BadRequestException("At least one field must be provided.");
@@ -47,10 +46,9 @@ public class ProjectService {
     }
 
     public DeleteProjectResponse removeProject(int projectId){
-        GetProjectResponse existing = repository.getProjectById(projectId)
-                .orElseThrow(() -> new NotFoundException("Project with id " + projectId + " not found"));
+       getProjectById(projectId);
 
-        repository.removeProject(projectId);
+       repository.removeProject(projectId);
 
         return new DeleteProjectResponse("Project with id " + projectId + " successfully removed, and all related tickets to it too");
     }

@@ -71,7 +71,8 @@ public class UserRepository {
     public PatchUserResponse updateUser(String userName, String userEmail, int userId){
         String sql = """
                 UPDATE users
-                SET user_name = ?, user_email = ?
+                SET user_name = COALESCE(?, user_name),
+                user_email = COALESCE(?, user_email)
                 WHERE user_id = ?
                 RETURNING user_id, user_name, user_email
                 """;
