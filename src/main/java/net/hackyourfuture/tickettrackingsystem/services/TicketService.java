@@ -97,8 +97,9 @@ public class TicketService {
 
         Ticket ticket = repository.updateTicket(ticketId, requestBody);
 
-        String warning = sendEmailOrGetWarning(ticket.getAssignees(), ticket,
-                "Ticket updated successfully, but email notification could not be sent.");
+        String warning = sendEmail(ticket.getAssignees(), ticket)
+                ? null
+                : "Ticket updated successfully, but email notification could not be sent.";
 
         return new PatchTicketResponse(
                 ticket.getTicketId(),
@@ -128,8 +129,9 @@ public class TicketService {
 
         Ticket ticket = repository.getTicketById(ticketId).orElseThrow();
 
-        String warning = sendEmailOrGetWarning(assignees, ticket,
-                "Assignee added successfully, but email notification could not be sent.");
+        String warning = sendEmail(assignees, ticket)
+                ? null
+                : "Assignee added successfully, but email notification could not be sent.";
 
         return new PostTicketAssigneeResponse(ticketId, toAssigneeDtos(assignees), warning);
     }
@@ -151,8 +153,9 @@ public class TicketService {
 
         Ticket ticket = repository.getTicketById(ticketId).orElseThrow();
 
-        String warning = sendEmailOrGetWarning(assignees, ticket,
-                "Assignee removed successfully, but email notification could not be sent.");
+        String warning = sendEmail(assignees, ticket)
+                ? null
+                : "Assignee removed successfully, but email notification could not be sent.";
 
         return new DeleteTicketAssigneeResponse(ticketId, toAssigneeDtos(assignees), warning);
 
@@ -178,18 +181,16 @@ public class TicketService {
             .toList();
     }
 
-    private String sendEmailOrGetWarning(List<Assignee> assignees, Ticket ticket, String warningText){
+    private boolean sendEmail(List<Assignee> assignees, Ticket ticket) {
         List<String> emails = assignees.stream().map(Assignee::getUserEmail).toList();
         List<String> names = assignees.stream().map(Assignee::getUserName).toList();
 
-        String result = resendService.sendTicketUpdateNotification(
+        return resendService.sendTicketUpdatedNotification(
                 ticket.getTicketId(),
                 ticket.getTicketTitle(),
                 ticket.getTicketStatus(),
                 emails,
                 names
         );
-
-        return result != null ? warningText : null;
     }
 }
