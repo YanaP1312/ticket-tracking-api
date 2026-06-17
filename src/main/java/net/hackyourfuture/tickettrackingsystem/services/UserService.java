@@ -35,7 +35,7 @@ public class UserService {
     }
 
     public PatchUserResponse updateUser(int userId, PatchUserRequest requestBody){
-        GetUserResponse existing = repository.getUserById(userId)
+        repository.getUserById(userId)
                 .orElseThrow(() -> new NotFoundException("User with id " + userId + " is not found."));
 
         if((requestBody.userName() == null || requestBody.userName().isBlank()) &&
@@ -43,10 +43,7 @@ public class UserService {
             throw new BadRequestException("At least one field must be provided.");
         }
 
-        String newName = (requestBody.userName() != null && !requestBody.userName().isBlank()) ? requestBody.userName() : existing.userName();
-        String newEmail = (requestBody.userEmail() !=null && !requestBody.userEmail().isBlank()) ? requestBody.userEmail() : existing.userEmail();
-
-        return repository.updateUser(newName, newEmail, userId);
+        return repository.updateUser(requestBody.userName(), requestBody.userEmail(), userId);
     }
 
     public DeleteUserResponse removeUser(int userId){
